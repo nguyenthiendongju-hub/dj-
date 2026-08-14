@@ -5,6 +5,7 @@ from __future__ import annotations
 import mimetypes
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
+from functools import lru_cache
 from pathlib import Path
 from uuid import UUID
 
@@ -163,6 +164,7 @@ ALLOWED_DOC_TYPE_CODES = frozenset(
 CATEGORIES = {"direct", "prod_indirect", "admin_indirect"}
 
 
+@lru_cache(maxsize=1)
 def _photo_dir() -> Path:
     root = Path(get_settings().upload_dir).expanduser().resolve() / "employee_photos"
     root.mkdir(parents=True, exist_ok=True)
@@ -328,11 +330,15 @@ def employee_to_out(
     allowance_total: Decimal | None = None,
     active_contract_type: str | None = None,
     effective_status: str | None = None,
+    resolve_photo_on_disk: bool = True,
 ) -> EmployeeOut:
     dept = emp.department
     team = emp.team
-    photo_file = _employee_photo_file(emp)
-    has_photo = photo_file is not None
+    if resolve_photo_on_disk:
+        photo_file = _employee_photo_file(emp)
+        has_photo = photo_file is not None
+    else:
+        has_photo = bool(emp.photo_path)
     acct = _account_fields(emp, user)
     al_total = allowance_total if allowance_total is not None else Decimal("0")
     total_salary = Decimal(str(emp.contract_salary)) + al_total
@@ -731,6 +737,7 @@ def list_employees(
                 allowance_total=allowance_totals.get(e.id, Decimal("0")),
                 active_contract_type=act_type,
                 effective_status=eff,
+                resolve_photo_on_disk=False,
             )
         )
     if status in ("active", "probation", "maternity"):
