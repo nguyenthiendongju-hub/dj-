@@ -283,10 +283,13 @@ def calculate_day(
                 split_policy=split_policy,
             )
     else:
-        if first_in is not None and last_out is not None:
-            ot = int((last_out - first_in).total_seconds() // 60)
-        else:
-            ot = 0
+        # Ngày nghỉ (lễ/cuối tuần): toàn bộ thời gian có mặt = OT, không áp
+        # logic vào/ra theo khung ca sáng/chiều như ngày công. Dùng trực tiếp
+        # mốc bấm đầu–cuối (đã dedupe, đã sort) để không bỏ sót ca chỉ làm buổi
+        # sáng (vd. 09:00–11:00) hay chỉ buổi chiều trên ngày nghỉ.
+        first_in = times[0]
+        last_out = times[-1]
+        ot = int((last_out - first_in).total_seconds() // 60)
         if ot < 0:
             ot = 0
         ot_external = ot
