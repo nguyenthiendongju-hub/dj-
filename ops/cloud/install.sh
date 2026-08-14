@@ -12,11 +12,11 @@ echo "[install] 1/4 Gói hệ thống: PostgreSQL, Redis, python venv..."
 need_apt=0
 command -v psql >/dev/null 2>&1 || need_apt=1
 command -v redis-server >/dev/null 2>&1 || need_apt=1
-dpkg -s python3.12-venv >/dev/null 2>&1 || need_apt=1
+dpkg -s python3-venv >/dev/null 2>&1 || need_apt=1
 if [ "$need_apt" = "1" ]; then
   sudo apt-get update -qq
   sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
-    postgresql postgresql-contrib redis-server python3.12-venv
+    postgresql postgresql-contrib redis-server python3-venv python3-pip
 fi
 
 echo "[install] 2/4 Python venv + deps (apps/api)..."

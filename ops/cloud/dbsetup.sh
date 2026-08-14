@@ -8,6 +8,12 @@ ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/env.sh"
 
+# Ubuntu 22.04 cloud = Postgres 14; không hard-code 16
+if [ -z "${PG_CLUSTER_VERSION}" ] && [ -d /etc/postgresql ]; then
+  PG_CLUSTER_VERSION="$(ls /etc/postgresql | sort -rn | head -1)"
+fi
+export PG_CLUSTER_VERSION="${PG_CLUSTER_VERSION:-14}"
+
 echo "[dbsetup] Khởi động PostgreSQL cluster ${PG_CLUSTER_VERSION}/main..."
 sudo pg_ctlcluster "${PG_CLUSTER_VERSION}" main start 2>/dev/null || true
 
